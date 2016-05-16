@@ -1,11 +1,24 @@
 package it.polito.tdp.metrodeparis.model;
-
+/*
+ * Tale classe è un Java Beans che rappresenta come oggetto una Connessione 
+ * della Metropolitana di Parigi
+ * 
+ */
 public class Connessione {
 
 	private int idConnessione;
 	private Linea linea;
 	private Fermata stazP;
 	private Fermata stazA;
+	
+
+	public Connessione(int idConnessione, Linea linea, Fermata stazP, Fermata stazA) {
+		super();
+		this.idConnessione = idConnessione;
+		this.linea = linea;
+		this.stazP = stazP;
+		this.stazA = stazA;
+	}
 
 	public int getIdConnessione() {
 		return idConnessione;
@@ -36,14 +49,6 @@ public class Connessione {
 	}
 
 	public void setStazA(Fermata stazA) {
-		this.stazA = stazA;
-	}
-
-	public Connessione(int idConnessione, Linea linea, Fermata stazP, Fermata stazA) {
-		super();
-		this.idConnessione = idConnessione;
-		this.linea = linea;
-		this.stazP = stazP;
 		this.stazA = stazA;
 	}
 

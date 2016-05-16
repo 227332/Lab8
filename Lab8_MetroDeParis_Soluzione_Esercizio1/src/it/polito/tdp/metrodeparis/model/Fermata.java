@@ -2,6 +2,11 @@ package it.polito.tdp.metrodeparis.model;
 
 import com.javadocmd.simplelatlng.LatLng;
 
+/*
+ * Tale classe è un Java Beans che rappresenta come oggetto una Fermata della Metropolitana 
+ * di Parigi
+ * 
+ */
 public class Fermata {
 
 	private int idFermata;
