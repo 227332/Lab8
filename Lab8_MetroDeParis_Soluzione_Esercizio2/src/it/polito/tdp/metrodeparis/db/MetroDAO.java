@@ -17,12 +17,12 @@ import it.polito.tdp.metrodeparis.model.Linea;
 public class MetroDAO {
 
 	public List<Fermata> getAllFermate() {
-		
+
 		final String sql = "SELECT id_fermata, nome, coordx, coordy FROM fermata ORDER BY nome ASC";
 		List<Fermata> fermate = new ArrayList<Fermata>();
 
 		try {
-			Connection conn = DBConnect.getInstance().getConnection();
+			Connection conn = DBConnect.getConnection();
 			PreparedStatement st = conn.prepareStatement(sql);
 			ResultSet rs = st.executeQuery();
 
@@ -49,12 +49,13 @@ public class MetroDAO {
 		List<Linea> linee = new ArrayList<Linea>();
 
 		try {
-			Connection conn = DBConnect.getInstance().getConnection();
+			Connection conn = DBConnect.getConnection();
 			PreparedStatement st = conn.prepareStatement(sql);
 			ResultSet rs = st.executeQuery();
 
 			while (rs.next()) {
-				Linea f = new Linea(rs.getInt("id_linea"), rs.getString("nome"), rs.getDouble("velocita"), rs.getDouble("intervallo"));
+				Linea f = new Linea(rs.getInt("id_linea"), rs.getString("nome"), rs.getDouble("velocita"),
+						rs.getDouble("intervallo"));
 				linee.add(f);
 			}
 
@@ -75,7 +76,7 @@ public class MetroDAO {
 		List<Connessione> connessioni = new ArrayList<Connessione>();
 
 		try {
-			Connection conn = DBConnect.getInstance().getConnection();
+			Connection conn = DBConnect.getConnection();
 			PreparedStatement st = conn.prepareStatement(sql);
 			ResultSet rs = st.executeQuery();
 
@@ -103,7 +104,7 @@ public class MetroDAO {
 			e.printStackTrace();
 			throw new RuntimeException("Errore di connessione al Database.");
 		}
-		
+
 		return connessioni;
 	}
 
@@ -113,7 +114,7 @@ public class MetroDAO {
 		List<FermataSuLinea> fermateSuLinea = new ArrayList<FermataSuLinea>();
 
 		try {
-			Connection conn = DBConnect.getInstance().getConnection();
+			Connection conn = DBConnect.getConnection();
 			PreparedStatement st = conn.prepareStatement(sql);
 			ResultSet rs = st.executeQuery();
 
@@ -122,8 +123,12 @@ public class MetroDAO {
 				int idLinea = rs.getInt("id_linea");
 				int idFermata = rs.getInt("id_fermata");
 
-				// Creo un nuovo oggetto, per trovarne uno esistente
+				//ATT: Qui creo un nuovo oggetto ma non lo dò a linea, lo uso solo per 
+				//trovarne il corrispettivo nella lista linee. Ciò perchè voglio che il
+				//mio oggetto linea punti a quello contenuto in linee!!!
+				//RICORDA quindi come si fa intali casi!
 				Linea linea = linee.get(linee.indexOf(new Linea(idLinea)));
+				//faccio la stessa cosa anche per le fermate
 				Fermata fermata = fermate.get(fermate.indexOf(new Fermata(idFermata)));
 
 				FermataSuLinea fermataSuLinea = new FermataSuLinea(fermata, linea);

@@ -1,6 +1,14 @@
 package it.polito.tdp.metrodeparis.model;
 
 import com.javadocmd.simplelatlng.LatLng;
+/*
+ * Tale classe è un Java Beans che rappresenta come oggetto una Fermata 
+ * della Metropolitana di Parigi, solo che, a differenza della sua classe 
+ * padre Fermata, essa contiene al suo interno anche la Linea su cui si trova
+ * Perciò per ogni oggetto Fermata ci possono essere più Linee che ci passano 
+ * e quindi più oggetti FermataSuLinea
+ * 
+ */
 
 public class FermataSuLinea extends Fermata {
 
@@ -24,6 +32,7 @@ public class FermataSuLinea extends Fermata {
 		return this.linea;
 	}
 
+	//tale metodo non è come quello della classe padre, perciò faccio l'Override
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -32,6 +41,7 @@ public class FermataSuLinea extends Fermata {
 		return result;
 	}
 
+	//tale metodo non è come quello della classe padre, perciò faccio l'Override
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -47,5 +57,11 @@ public class FermataSuLinea extends Fermata {
 		} else if (!linea.equals(other.linea))
 			return false;
 		return true;
+	}
+
+	//tale metodo non è come quello della classe padre, perciò faccio l'Override
+	@Override
+	public String toString() {
+		return super.toString() + "/" + this.linea;
 	}
 }

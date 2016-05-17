@@ -14,6 +14,9 @@ import it.polito.tdp.metrodeparis.db.MetroDAO;
 
 public class Model {
 
+	//lo metto solo per comodità il debug. Così se lo metto a true mi faccio stampare su console varie
+	//cose nel corso del programma in modo da controllare che funzioni. Se lo metto a false il programma
+	//non mi stampa nulla su console ma opera solo tramite la GUI
 	private static boolean debug = true;
 
 	private List<Linea> linee;
@@ -51,42 +54,55 @@ public class Model {
 		connessioni = metroDAO.getAllConnessioni(fermate, linee);
 		fermateSuLinea = metroDAO.getAllFermateSuLinea(fermate, linee);
 
-		// Directed Weighted
+		// In questo esercizio serve un Directed Weighted Graph
 		grafo = new DefaultDirectedWeightedGraph<FermataSuLinea, DefaultWeightedEdge>(DefaultWeightedEdge.class);
 
-		// FASE1: Aggiungo un vertice per ogni fermata
+		// FASE1: Aggiungo ogni fermataSuLinea come vertice del grafo
 		Graphs.addAllVertices(grafo, fermateSuLinea);
 
-		// FASE2: Aggiungo tutte le connessioni tra tutte le fermate
+		// FASE2: Aggiungo ogni connessione, tra 2 fermateSuLinee aventi stessa Linea ma diversa Fermata, 
+		//come edge del grafo tra i nodi corrispondenti a tali fermateSuLinee
+		//...Tali edges hanno come peso i tempi di collegamento tra le due diverse stazioni
 		for (Connessione c : connessioni) {
 
 			double velocita = c.getLinea().getVelocita();
 			double distanza = LatLngTool.distance(c.getStazP().getCoords(), c.getStazA().getCoords(),LengthUnit.KILOMETER);
 			double tempo = (distanza / velocita) * 60 * 60;
 
-			// Cerco la fermataSuLinea corretta all'interno della lista delle fermate
-			List<FermataSuLinea> fermateSuLineaPerFermata = c.getStazP().getFermateSuLinea();
-			FermataSuLinea fslPartenza = fermateSuLineaPerFermata.get(fermateSuLineaPerFermata.indexOf(new FermataSuLinea(c.getStazP(), c.getLinea())));
-
-			// Cerco la fermataSuLinea corretta all'interno della lista delle fermate
-			fermateSuLineaPerFermata = c.getStazA().getFermateSuLinea();
-			FermataSuLinea fslArrivo = fermateSuLineaPerFermata.get(fermateSuLineaPerFermata.indexOf(new FermataSuLinea(c.getStazA(), c.getLinea())));
+			
+			// Nella List fermateSuLinea cerco la fermataSuLinea corrispondente a [c.getStazP(), c.getLinea()]
+			// e la fermataSuLinea corrispondente a [c.getStazA(), c.getLinea()]
+			FermataSuLinea fslPartenza = fermateSuLinea.get(fermateSuLinea.indexOf(new FermataSuLinea(c.getStazP(), c.getLinea())));
+			FermataSuLinea fslArrivo = fermateSuLinea.get(fermateSuLinea.indexOf(new FermataSuLinea(c.getStazA(), c.getLinea())));
 
 			if (fslPartenza != null && fslArrivo != null) {
-				// Aggiungoun un arco pesato tra le due fermate
+				// Aggiungo un arco orientato e pesato tra le due fermateSuLinee, con il peso dato dal tempo
+				//di trasporto
 				Graphs.addEdge(grafo, fslPartenza, fslArrivo, tempo);
 			} else {
 				System.err.println("Non ho trovato fslPartenza o fslArrivo. Salto alle prossime");
 			}
 		}
 
-		// FASE3: Aggiungo tutte le connessioni tra tutte le fermateSuLinee
-		// della stessa Fermata
+		// FASE3: Aggiungo ogni connessione, tra 2 fermateSuLinee aventi stessa Fermata ma diversa Linea, 
+		//come edge del grafo tra i nodi corrispondenti a tali fermateSuLinee
+		//...Tali edges hanno come peso i tempi di attesa tra le due diverse Linee della stessa stazione,
+		// ossia i tempi di attesa del passeggero per cambiare Linea in una stazione
 		for (Fermata fermata : fermate) {
+			
+			//Ora, per aggiungere gli edges corrispondenti ad un cambio di linea all'interno della stessa
+			//stazione, faccio così: per ogni nodo contenente tale fermata aggiungi un arco tra tale nodo
+			//e tutti gli altri nodi aventi sempre tale fermata ma che sono diversi dal nodo dato (ossia 
+			//che hanno la linea diversa)
 			for (FermataSuLinea fslP : fermata.getFermateSuLinea()) {
 				for (FermataSuLinea fslA : fermata.getFermateSuLinea()) {
 					if (!fslP.equals(fslA)) {
+						// Aggiungo un arco orientato e pesato tra le due fermateSuLinee, con il peso dato dal tempo
+						//di attesa dovuto al cambio linea all'interno di tale stazione
 						Graphs.addEdge(grafo, fslP, fslA, fslA.getLinea().getIntervallo() * 60);
+						//la traccia diceva che il tempo di attesa è dato dall' attributo intervallo 
+						//specificato nell' oggetto Linea. Moltiplico poi per 60 perchè esso è espresso in
+						//minuti mentre io lo voglio in secondi
 					}
 				}
 			}
@@ -106,6 +122,11 @@ public class Model {
 		// Usati per salvare i valori migliori
 		List<DefaultWeightedEdge> bestPathEdgeList = null;
 		double bestPathTempoTotale = Double.MAX_VALUE;
+		
+		//ATT: Infatti siccome in tale esercizio non hai un nodo per ogni fermata ma più nodi,
+		// per trovare il percorso minimo tra Fermata A e Fermata B devi applicare Dijkstra tra ogni 
+		// FermataSuLinea contenente Fermata A e ogni FermataSuLinea contenente Fermata B e infine prendere
+		// come soluzione il risultato avente tempo minimo
 
 		for (FermataSuLinea fslP : partenza.getFermateSuLinea()) {
 			for (FermataSuLinea fslA : arrivo.getFermateSuLinea()) {
@@ -124,9 +145,15 @@ public class Model {
 		pathTempoTotale = bestPathTempoTotale;
 
 		if (pathEdgeList == null)
-			throw new RuntimeException("Non Ã¨ stato creato un percorso.");
+			throw new RuntimeException("Non è stato creato un percorso.");
 
-		// Nel calcolo del tempo non tengo conto della prima e dell'ultima
+
+
+		/* pathTempoTotale non ha tenuto conto del fatto che c'è una sosta di 
+		 * 30 secondi per ogni fermata. Devo perciò aggiungere tale tempo, il
+		 * quale naturalmente non c'è per le stazioni di partenza e di arrivo
+		 * ma solo per quelle intermedie
+		 */
 		if (pathEdgeList.size() - 1 > 0) {
 			pathTempoTotale += (pathEdgeList.size() - 1) * 30;
 		}
@@ -136,7 +163,11 @@ public class Model {
 
 		if (pathEdgeList == null)
 			throw new RuntimeException("Non Ã¨ stato creato un percorso.");
-
+		
+		/*
+		 * Utilizzo StringBuilder (o anche StringBuffer, tanto nel caso di un solo thread sono
+		 * uguali) invece di String perchè mi serve una stringa di dim variabile e non fissa
+		 */
 		StringBuilder risultato = new StringBuilder();
 		risultato.append("Percorso:\n\n");
 
@@ -155,6 +186,7 @@ public class Model {
 				risultato.append(", ");
 			}
 		}
+		//cancello l' ultima ", " messa
 		risultato.setLength(risultato.length() - 2);
 		risultato.append("]");
 

@@ -1,5 +1,11 @@
 package it.polito.tdp.metrodeparis.model;
 
+/*
+ * Tale classe è un Java Beans che rappresenta come oggetto una Connessione 
+ * della Metropolitana di Parigi
+ * 
+ */
+
 public class Connessione {
 
 	private int idConnessione;

@@ -1,5 +1,12 @@
 package it.polito.tdp.metrodeparis.model;
 
+/*
+ * Tale classe è un Java Beans che rappresenta come oggetto una Linea 
+ * della Metropolitana di Parigi
+ * 
+ */
+
+
 public class Linea {
 
 	private int idLinea;

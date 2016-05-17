@@ -39,21 +39,30 @@ public class MetroDeParisController {
 	void setModel(Model model) {
 
 		this.model = model;
-		
+
 		try {
 			model.creaGrafo();
-			
+
+			//ora devo popolare le due ChoiceBox con la List di tutte le possibili Fermate
 			List<Fermata> stazioni = model.getStazioni();
 			choiceBoxPartenza.getItems().addAll(stazioni);
 			choiceBoxArrivo.getItems().addAll(stazioni);
-			
+
 		} catch (RuntimeException e) {
-			txtRisultato.setText(e.getMessage());
+			txtRisultato.setText(e.getMessage());//così in caso un problema, esso viene
+			 									//visualizzato non su console ma sulla GUI
 		}
 	}
 
 	@FXML
 	void calcolaPercorso(ActionEvent event) {
+		
+		/*
+		 * OSS:
+		 * Si poteva fare anche, equivalentemente:
+		 * Fermata stazioneDiPartenza = choiceBoxPartenza.getSelectionModel().getSelectedItem();
+		 * 
+		 */
 
 		Fermata stazioneDiPartenza = choiceBoxPartenza.getValue();
 		Fermata stazioneDiArrivo = choiceBoxArrivo.getValue();
@@ -73,14 +82,28 @@ public class MetroDeParisController {
 					int secondi = tempoTotaleInSecondi % 60;
 					String timeString = String.format("%02d:%02d:%02d", ore, minuti, secondi);
 
+					
+					/*
+					 * OSS: StringBuilder è identico a StringBuffer (nei casi di singolo thread)
+					 *  ma più veloce. Ossia è, essenzialmente, una String di lunghezza mutabile.
+					 *  Volendo potevo usare anche StringBuffer, essendo identici in questo caso.
+					 *  Non uso String perchè sommo vari pezzi in momenti diversi e la String non
+					 *  supporta ciò. Se volevo usare String dovevo fare in un'unica istruzione:
+					 *  String risultato = model.getPercorsoEdgeList()+
+					 *  					"\n\nTempo di percorrenza stimato: " + 
+					 *  						timeString + "\n";
+					 */
+					
+					
 					StringBuilder risultato = new StringBuilder();
 					// Ottengo il percorso
+					//model.getPercorsoEdgeList() restituisce una String
 					risultato.append(model.getPercorsoEdgeList());
 					risultato.append("\n\nTempo di percorrenza stimato: " + timeString + "\n");
 
 					// Aggiorno la TextArea
 					txtRisultato.setText(risultato.toString());
-					
+
 				} catch (RuntimeException e) {
 					txtRisultato.setText(e.getMessage());
 				}
@@ -89,9 +112,9 @@ public class MetroDeParisController {
 
 				txtRisultato.setText("Inserire una stazione di arrivo diversa da quella di partenza.");
 			}
-			
+
 		} else {
-			
+
 			txtRisultato.setText("Inserire una stazione di arrivo ed una di partenza.");
 		}
 	}

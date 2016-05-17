@@ -4,12 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.javadocmd.simplelatlng.LatLng;
+/*
+ * Tale classe è un Java Beans che rappresenta come oggetto una Fermata 
+ * della Metropolitana di Parigi
+ * 
+ */
 
 public class Fermata {
 
 	private int idFermata;
 	private String nome;
 	private LatLng coords;
+	//in ogni oggetto Fermata è utile memorizzare la List di tutte le fermateSuLinea
+	//in cui esso è la fermata 
 	private List<FermataSuLinea> fermateSuLinea;
 
 	public Fermata(int idFermata, String nome, LatLng coords) {
