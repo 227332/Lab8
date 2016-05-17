@@ -14,7 +14,7 @@ import it.polito.tdp.metrodeparis.db.MetroDAO;
 
 public class Model {
 
-	//lo metto solo per comodità il debug. Così se lo metto a true mi faccio stampare su console varie
+	//lo metto solo per comoditÃ  il debug. CosÃ¬ se lo metto a true mi faccio stampare su console varie
 	//cose nel corso del programma in modo da controllare che funzioni. Se lo metto a false il programma
 	//non mi stampa nulla su console ma opera solo tramite la GUI
 	private static boolean debug = true;
@@ -91,7 +91,7 @@ public class Model {
 		for (Fermata fermata : fermate) {
 			
 			//Ora, per aggiungere gli edges corrispondenti ad un cambio di linea all'interno della stessa
-			//stazione, faccio così: per ogni nodo contenente tale fermata aggiungi un arco tra tale nodo
+			//stazione, faccio cosÃ¬: per ogni nodo contenente tale fermata aggiungi un arco tra tale nodo
 			//e tutti gli altri nodi aventi sempre tale fermata ma che sono diversi dal nodo dato (ossia 
 			//che hanno la linea diversa)
 			for (FermataSuLinea fslP : fermata.getFermateSuLinea()) {
@@ -100,8 +100,8 @@ public class Model {
 						// Aggiungo un arco orientato e pesato tra le due fermateSuLinee, con il peso dato dal tempo
 						//di attesa dovuto al cambio linea all'interno di tale stazione
 						Graphs.addEdge(grafo, fslP, fslA, fslA.getLinea().getIntervallo() * 60);
-						//la traccia diceva che il tempo di attesa è dato dall' attributo intervallo 
-						//specificato nell' oggetto Linea. Moltiplico poi per 60 perchè esso è espresso in
+						//la traccia diceva che il tempo di attesa Ã¨ dato dall' attributo intervallo 
+						//specificato nell' oggetto Linea. Moltiplico poi per 60 perchÃ¨ esso Ã¨ espresso in
 						//minuti mentre io lo voglio in secondi
 					}
 				}
@@ -123,7 +123,7 @@ public class Model {
 		List<DefaultWeightedEdge> bestPathEdgeList = null;
 		double bestPathTempoTotale = Double.MAX_VALUE;
 		
-		//ATT: Infatti siccome in tale esercizio non hai un nodo per ogni fermata ma più nodi,
+		//ATT: Infatti siccome in tale esercizio non hai un nodo per ogni fermata ma piÃ¹ nodi,
 		// per trovare il percorso minimo tra Fermata A e Fermata B devi applicare Dijkstra tra ogni 
 		// FermataSuLinea contenente Fermata A e ogni FermataSuLinea contenente Fermata B e infine prendere
 		// come soluzione il risultato avente tempo minimo
@@ -145,13 +145,13 @@ public class Model {
 		pathTempoTotale = bestPathTempoTotale;
 
 		if (pathEdgeList == null)
-			throw new RuntimeException("Non è stato creato un percorso.");
+			throw new RuntimeException("Non Ã¨ stato creato un percorso.");
 
 
 
-		/* pathTempoTotale non ha tenuto conto del fatto che c'è una sosta di 
-		 * 30 secondi per ogni fermata. Devo perciò aggiungere tale tempo, il
-		 * quale naturalmente non c'è per le stazioni di partenza e di arrivo
+		/* pathTempoTotale non ha tenuto conto del fatto che c'Ã¨ una sosta di 
+		 * 30 secondi per ogni fermata. Devo perciÃ² aggiungere tale tempo, il
+		 * quale naturalmente non c'Ã¨ per le stazioni di partenza e di arrivo
 		 * ma solo per quelle intermedie
 		 */
 		if (pathEdgeList.size() - 1 > 0) {
@@ -162,11 +162,11 @@ public class Model {
 	public String getPercorsoEdgeList() {
 
 		if (pathEdgeList == null)
-			throw new RuntimeException("Non Ã¨ stato creato un percorso.");
+			throw new RuntimeException("Non ÃƒÂ¨ stato creato un percorso.");
 		
 		/*
 		 * Utilizzo StringBuilder (o anche StringBuffer, tanto nel caso di un solo thread sono
-		 * uguali) invece di String perchè mi serve una stringa di dim variabile e non fissa
+		 * uguali) invece di String perchÃ¨ mi serve una stringa di dim variabile e non fissa
 		 */
 		StringBuilder risultato = new StringBuilder();
 		risultato.append("Percorso:\n\n");
