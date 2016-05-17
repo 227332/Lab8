@@ -162,7 +162,7 @@ public class Model {
 	public String getPercorsoEdgeList() {
 
 		if (pathEdgeList == null)
-			throw new RuntimeException("Non Ã¨ stato creato un percorso.");
+			throw new RuntimeException("Non è stato creato un percorso.");
 		
 		/*
 		 * Utilizzo StringBuilder (o anche StringBuffer, tanto nel caso di un solo thread sono
