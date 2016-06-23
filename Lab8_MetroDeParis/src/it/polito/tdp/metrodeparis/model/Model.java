@@ -39,9 +39,9 @@ public class Model {
 	}
 	
 	/*
-	 * OSS: devo passare anche fermate e linee perchÈ cosÏ quando 
+	 * OSS: devo passare anche fermate e linee perch√© cos√¨ quando 
 	 * creo un oggetto conn gli passo i rifarimenti di Fermata e Linea
-	 * che ho gi‡ creato in precedenza, perchÈ non voglio creare nuovi
+	 * che ho gi√† creato in precedenza, perch√© non voglio creare nuovi
 	 * oggetti Fermata e Linea!
 	 */
 	public List<Connessione> getAllConn(List<Fermata> fermate,List<Linea> linee) {
@@ -57,14 +57,17 @@ public class Model {
 		fermate=getAllFermate();
 		linee=getAllLinee();
 		conn=getAllConn(fermate,linee);
+		/* OSS: √® un grafo non orientato perch√® in una metropolitana, se una linea fa un percorso da A a B allora poi
+		 * lo far√† anche da B ad A
+		 */
 		grafo= new SimpleWeightedGraph<Fermata,DefaultWeightedEdge>(DefaultWeightedEdge.class);
 	
 		/*
-		 * ATT: Ë vero che grafo non ha un metodo per aggiungere tutti i 
+		 * ATT: √® vero che grafo non ha un metodo per aggiungere tutti i 
 		 * vertici direttamente, ma NON devi fare:
 		 * 	for(Fermata f: fermate)
 				grafo.addVertex(f);
-			perchÈ c'Ë la classe Graphs che ha vari metodi utili 
+			perch√© c'√® la classe Graphs che ha vari metodi utili 
 			tra cui addAllVertices()!!!
 		 */
 		Graphs.addAllVertices(grafo,fermate);
@@ -81,14 +84,14 @@ public class Model {
 			/*
 			 * ATT:
 			 * sebbene le classi di tipo grafo hanno il metodo addEdge(), esso non va usato
-			 * perchÈ richiede di passare l'edge gi‡ come DefaultWeightedEdge, ma ciÚ non Ë
+			 * perch√© richiede di passare l'edge gi√† come DefaultWeightedEdge, ma ci√≤ non √®
 			 * possibile visto che tale classe non consente di settare il peso dell'edge.
-			 * Ecco perchÈ nella doc di tale classe c'Ë scritto:
+			 * Ecco perch√© nella doc di tale classe c'√® scritto:
 			 * 
 			 * "All access to the weight of an edge must go through the graph interface, 
 			 * which is why this class doesn't expose any public methods."
 			 * 
-			 * PerciÚ devi usare sempre la classe Graphs per aggiungere gli edges,
+			 * Perci√≤ devi usare sempre la classe Graphs per aggiungere gli edges,
 			 * NON dimenticarlo!!!
 			 */
 			Graphs.addEdge(grafo, stazP, stazA, peso);
@@ -132,7 +135,7 @@ public class Model {
 		int minuti = (tempoTotSec % 3600) / 60;
 		int secondi = tempoTotSec % 60;
 		sb.append(String.format("%02d:%02d:%02d", ore, minuti, secondi));
-	   /*RIC: %02d vuol dire che utilizzo sempre 2 spazi e, se un numero non Ë
+	   /*RIC: %02d vuol dire che utilizzo sempre 2 spazi e, se un numero non √®
 		a due cifre, allora lo spazio vuoto lo riempio con 0. Invece %2d lascia
 		2 spazi ma lo spazio vuoto riane vuoto. Infine %d lascia solo lo spazio
 		necessario per scrivere il numero. Ad esempio:
