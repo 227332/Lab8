@@ -1,12 +1,13 @@
 package it.polito.tdp.metrodeparis.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.jgrapht.Graphs;
 import org.jgrapht.WeightedGraph;
 import org.jgrapht.alg.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultWeightedEdge;
-import org.jgrapht.graph.SimpleWeightedGraph;
+import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 
 import com.javadocmd.simplelatlng.LatLngTool;
 import com.javadocmd.simplelatlng.util.LengthUnit;
@@ -15,9 +16,10 @@ import it.polito.tdp.metrodeparis.db.MetroDAO;
 
 public class Model {
 	List<Fermata> fermate = null;
-	WeightedGraph<Fermata,DefaultWeightedEdge> grafo;
+	WeightedGraph<StazioneLinea,DefaultWeightedEdge> grafo;
 	List<Connessione> conn = null;
 	List<Linea> linee =null;
+	List<StazioneLinea> stazLinee = null;
 	
 
 	public List<Fermata> getAllFermate() {
@@ -56,42 +58,57 @@ public class Model {
 	public void creaGrafo() {
 		fermate=getAllFermate();
 		linee=getAllLinee();
-		conn=getAllConn(fermate,linee);
-		grafo= new SimpleWeightedGraph<Fermata,DefaultWeightedEdge>(DefaultWeightedEdge.class);
-	
-		/*
-		 * ATT: è vero che grafo non ha un metodo per aggiungere tutti i 
-		 * vertici direttamente, ma NON devi fare:
-		 * 	for(Fermata f: fermate)
-				grafo.addVertex(f);
-			perché c'è la classe Graphs che ha vari metodi utili 
-			tra cui addAllVertices()!!!
-		 */
-		Graphs.addAllVertices(grafo,fermate);
+		conn=getAllConn(fermate,linee);		
 		
+		grafo = new SimpleDirectedWeightedGraph<StazioneLinea,DefaultWeightedEdge>(DefaultWeightedEdge.class);
+		stazLinee = new ArrayList<>();
 		for(Connessione c: conn){
-			Fermata stazP = c.getStazP();
-			Fermata stazA = c.getStazA();
-			Linea l = c.getLinea();
-			
-			double dist = LatLngTool.distance(stazP.getCoords(), stazA.getCoords(), LengthUnit.KILOMETER);
-			
-			double peso = (dist/l.getVelocita())*60*60;//siccome poi ho soste in secondi, passo da Km/h a Km/s
+			StazioneLinea s1 = new StazioneLinea(c.getStazP(),c.getLinea());
+			StazioneLinea s2 = new StazioneLinea(c.getStazA(),c.getLinea());
 			
 			/*
-			 * ATT:
-			 * sebbene le classi di tipo grafo hanno il metodo addEdge(), esso non va usato
-			 * perché richiede di passare l'edge già come DefaultWeightedEdge, ma ciò non è
-			 * possibile visto che tale classe non consente di settare il peso dell'edge.
-			 * Ecco perché nella doc di tale classe c'è scritto:
-			 * 
-			 * "All access to the weight of an edge must go through the graph interface, 
-			 * which is why this class doesn't expose any public methods."
-			 * 
-			 * Perciò devi usare sempre la classe Graphs per aggiungere gli edges,
-			 * NON dimenticarlo!!!
+			 * Faccio il check che non lo contenga già perchè per ogni connessione
+			 * (stazP,stazA) avrò anche la sua inversa! In alternativa potevo anche
+			 * fare che nel for inserivo solo s1 e basta, perché tanto s2 verrà 
+			 * inserita quando stazA sarà nella connessione inversa a questa.
+			 * Cmq questo check mi serve solo per la lista stazLinee... Infatti addVertex()
+			 * automaticamente lascia il grafo invariato nel caso in cui il vertice sia già
+			 * presente!
 			 */
-			Graphs.addEdge(grafo, stazP, stazA, peso);
+			if(!stazLinee.contains(s1)){
+				stazLinee.add(s1);
+				grafo.addVertex(s1);
+			}
+			if(!stazLinee.contains(s2)){
+				stazLinee.add(s2);
+				grafo.addVertex(s2);
+			}
+			/*
+			 * OSS: ormai ho messo tale check, ma in realtà non serve perché addEdge() lascia il
+			 * grafo invariato se vi è già un edge tra i due vertici e il grafo è simple 
+			 * (non multiplo quindi) o cmq se lo stesso edge c'è già (sia nel caso simple che
+			 * multiplo)
+			 */
+			if(!grafo.containsEdge(s1, s2)){
+				double dist = LatLngTool.distance(c.getStazP().getCoords(), c.getStazA().getCoords(), LengthUnit.KILOMETER);
+				double peso = (dist/c.getLinea().getVelocita())*60*60;
+				Graphs.addEdge(grafo, s1, s2, peso);
+			}
+
+		}
+		
+		//ora calcolo i pesi dei vari edges tra (stessa stazione,linee diverse) e poi li aggiungo al grafo
+		for(StazioneLinea s1: stazLinee){
+			for(StazioneLinea s2: stazLinee){
+				/*
+				 * Ho già detto prima che il check containsEdge() non serve ma ormai ce lo lascio
+				 */
+				if(s1.getStaz().equals(s2.getStaz()) && !s1.equals(s2) && !grafo.containsEdge(s1, s2)){
+					//new edge
+					double peso = s1.getLinea().getIntervallo()*60;//passo da minuti a secondi
+					Graphs.addEdge(grafo, s1, s2, peso);
+				}
+			}
 		}
 		
 		
@@ -99,22 +116,42 @@ public class Model {
 	}
 
 	public String getPercorsoMin(Fermata stazP,Fermata stazA) {
+		double minTempo = Double.MAX_VALUE;
+		List<DefaultWeightedEdge> minEdgesPath=null;
 		
-		DijkstraShortestPath<Fermata,DefaultWeightedEdge> cammino = new DijkstraShortestPath<>(grafo,stazP,stazA);
-		
-		List<DefaultWeightedEdge> edgesPath = cammino.getPathEdgeList();
-		double tempoTot = cammino.getPathLength();
-		
-		if(edgesPath.size()>1)
-			tempoTot+=30*(tempoTot-1);
+		for(StazioneLinea s1: stazLinee){
+			for(StazioneLinea s2: stazLinee){
+				if(s1.getStaz().equals(stazP) && s2.getStaz().equals(stazA)){
+					DijkstraShortestPath<StazioneLinea,DefaultWeightedEdge> cammino = new DijkstraShortestPath<>(grafo,s1,s2);
+					List<DefaultWeightedEdge> edgesPath = cammino.getPathEdgeList();
+					double tempoTot = cammino.getPathLength();
+					
+					if(tempoTot<minTempo){
+						minTempo=tempoTot;
+						minEdgesPath=edgesPath;
+					}					
+				}
+			}
+		}
+			
+		if(minEdgesPath.size()>1)
+			minTempo+=30*(minTempo-1);//tiene conto del tempo per spostarsi di linea già 
+										//con il peso degli edges
 		
 		StringBuilder sb = new StringBuilder();
 		
-		sb.append("Percorso:\n");
+		sb.append("Percorso:\n\n");
+		Linea lineaTemp = grafo.getEdgeTarget(minEdgesPath.get(0)).getLinea();
+		sb.append("Prendo Linea: " + lineaTemp.getNome() + "\n");
 
-		for (DefaultWeightedEdge edge : edgesPath) {
-			sb.append(grafo.getEdgeTarget(edge).getNome());
+		for (DefaultWeightedEdge edge : minEdgesPath) {
+			//quando cambio la linea stampo lo stesso il nome della stazione, anche se è uguale al precedente
+			sb.append(grafo.getEdgeTarget(edge).getStaz().getNome());
 			sb.append("\n");
+			if (!grafo.getEdgeTarget(edge).getLinea().equals(lineaTemp)) {
+				sb.append("\n\nCambio su Linea: " + grafo.getEdgeTarget(edge).getLinea().getNome() + "\n");
+				lineaTemp = grafo.getEdgeTarget(edge).getLinea();
+			}
 		}
 		
 		sb.append("\n");
@@ -127,7 +164,7 @@ public class Model {
 		 * 	 dopo aver diviso per le ore e 60
 		 * - il rimanente sono i secondi
 		 */
-		int tempoTotSec = (int) tempoTot;
+		int tempoTotSec = (int) minTempo;
 		int ore = tempoTotSec / 3600;
 		int minuti = (tempoTotSec % 3600) / 60;
 		int secondi = tempoTotSec % 60;
@@ -143,7 +180,5 @@ public class Model {
 		return sb.toString();
 
 	}
-
-
 
 }

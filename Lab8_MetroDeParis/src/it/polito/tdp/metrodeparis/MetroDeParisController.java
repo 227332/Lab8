@@ -50,6 +50,11 @@ public class MetroDeParisController {
 	void calcolaPercorso(ActionEvent event) {
 		if(boxPartenza.getValue()== null || boxArrivo.getValue()==null){
 			txtRisultato.setText("Errore: selezionare le stazioni\n");
+			return;
+		}
+		if(boxPartenza.getValue().equals(boxArrivo.getValue())){
+			txtRisultato.setText("Errore: selezionare 2 stazioni diverse\n");
+			return;
 		}
 
 		txtRisultato.setText(model.getPercorsoMin(boxPartenza.getValue(),boxArrivo.getValue()));
